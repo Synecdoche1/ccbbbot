@@ -4,15 +4,14 @@ import json
 import os
 import traceback
 
-# Try to import config, with fallbacks
-try:
-    from config import TORN_API_KEY, FACTION_ID
-    print(f"✅ Config loaded - Faction ID: {FACTION_ID}")
-except ImportError as e:
-    print(f"❌ Failed to import config: {e}")
-    # Set dummy values to prevent crashes
-    TORN_API_KEY = "YOUR_API_KEY_HERE"
-    FACTION_ID = "YOUR_FACTION_ID_HERE"
+# -------------------------
+# CONFIG FROM ENVIRONMENT
+# -------------------------
+TORN_API_KEY = os.getenv("TORN_API_KEY", "YOUR_API_KEY_HERE")
+FACTION_ID = os.getenv("FACTION_ID", "YOUR_FACTION_ID_HERE")
+
+if TORN_API_KEY == "YOUR_API_KEY_HERE" or FACTION_ID == "YOUR_FACTION_ID_HERE":
+    print("❌ Torn API key or Faction ID not set. Revives command will not work until configured.
 
 PLAYER_CACHE_FILE = "player_cache.json"
 
