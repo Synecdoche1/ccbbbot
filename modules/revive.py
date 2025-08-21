@@ -1,21 +1,20 @@
 import os
 import json
-import traceback
 import requests
 import discord
-from flask import Flask
+import traceback
 
 # -------------------------
-# CONFIG FROM ENVIRONMENT
+# CONFIG FROM ENV
 # -------------------------
 TORN_API_KEY = os.getenv("TORN_API_KEY", "YOUR_API_KEY_HERE")
 FACTION_ID = os.getenv("FACTION_ID", "YOUR_FACTION_ID_HERE")
 
 if TORN_API_KEY == "YOUR_API_KEY_HERE" or FACTION_ID == "YOUR_FACTION_ID_HERE":
-    print("❌ Torn API key or Faction ID not set. Revives command will not work until configured.")
+    print("❌ Torn API key or Faction ID not set. Revives command will not work.")
 
 # -------------------------
-# CACHE FUNCTIONS
+# CACHE FILE
 # -------------------------
 PLAYER_CACHE_FILE = "player_cache.json"
 
@@ -36,13 +35,11 @@ def save_cache(data, file):
         print(f"❌ Error saving cache: {e}")
 
 # -------------------------
-# REVIVES COMMAND
+# REVIVES FUNCTION
 # -------------------------
 async def revives(channel):
-    """Send revivable faction members as an embed"""
     print(f"🔍 Starting revives command for faction {FACTION_ID}")
 
-    # Check config
     if TORN_API_KEY == "YOUR_API_KEY_HERE" or FACTION_ID == "YOUR_FACTION_ID_HERE":
         error_msg = "❌ Bot configuration error: Torn API key or Faction ID not set."
         print(error_msg)
@@ -51,52 +48,32 @@ async def revives(channel):
 
     try:
         status_msg = await channel.send("🔍 Fetching faction members...")
-        api_url = f"https://api.torn.com/v2/faction/members?selections=profile&key={TORN_API_KEY}"
 
+        api_url = f"https://api.torn.com/v2/faction/members?selections=profile&key={TORN_API_KEY}"
         r = requests.get(api_url, timeout=20)
         r.raise_for_status()
         data = r.json()
-        print(f"📡 Fetched data from Torn API: keys={list(data.keys())}")
+        members_data = data.get("members", [])
 
-        if "error" in data:
-            await channel.send(f"❌ Torn API error: {data['error']}")
+        if not members_data:
+            await channel.send("❌ No members data found.")
             return
 
-        members_data = data.get("members", {})
-        members_list = []
-
-        # Handle both dict and list formats
-        if isinstance(members_data, dict):
-            for member_id, member_info in members_data.items():
-                member_info["id"] = member_id
-                members_list.append(member_info)
-        elif isinstance(members_data, list):
-            members_list = members_data
-        else:
-            print("❌ Unexpected members_data format")
-            await channel.send("❌ Could not parse members data from Torn API.")
-            return
-
-        print(f"📊 Processing {len(members_list)} members")
         revivable_members = {"Everyone": [], "Friends & faction": []}
         total_revives = 0
 
-        for member in members_list:
-            try:
-                if not member.get("is_revivable"):
-                    continue
-                setting = member.get("revive_setting")
-                if setting not in revivable_members:
-                    continue
-
-                total_revives += 1
-                member_name = member.get("name", f"ID:{member.get('id')}")
-                profile_link = f"https://www.torn.com/profiles.php?XID={member.get('id')}"
-                revivable_members[setting].append(f"[{member_name}]({profile_link})")
-                print(f"✅ Found revivable: {member_name} ({setting})")
-            except Exception as e:
-                print(f"❌ Error processing member: {e}")
+        for member in members_data:  # <-- handle as list
+            if not member.get("is_revivable"):
                 continue
+
+            setting = member.get("revive_setting")
+            if setting not in revivable_members:
+                continue
+
+            total_revives += 1
+            name = member.get("name", f"ID:{member.get('id')}")
+            profile_link = f"https://www.torn.com/profiles.php?XID={member.get('id')}"
+            revivable_members[setting].append(f"[{name}]({profile_link})")
 
         await status_msg.delete()
 
@@ -131,27 +108,10 @@ async def revives(channel):
         print(f"✅ Sent revives embed with {total_revives} members")
 
     except Exception as e:
-        print(f"❌ Unexpected error in revives command: {e}")
+        error_msg = f"❌ Unexpected error in revives command: {str(e)}"
+        print(error_msg)
         traceback.print_exc()
         try:
-            await channel.send(f"❌ Unexpected error: {e}")
+            await channel.send(error_msg)
         except:
             pass
-
-# -------------------------
-# FLASK KEEP-ALIVE FOR RENDER FREE TIER
-# -------------------------
-app = Flask("keep_alive")
-
-@app.route("/")
-def home():
-    return "Revive module is running!", 200
-
-def run_server():
-    import threading
-    port = int(os.getenv("PORT", 5000))
-    threading.Thread(target=lambda: app.run(host="0.0.0.0", port=port)).start()
-    print(f"🌐 Flask server started on port {port} for Render keep-alive")
-
-# Start the Flask server immediately when module is loaded
-run_server()
