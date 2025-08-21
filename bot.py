@@ -61,7 +61,11 @@ for name in ["revive","bounty","inactivity","war","chain","banking"]:
         if name == "banking":
             COMMANDS.update({
                 "bank": mod.bank,
-                "/bank": mod.bank
+                "/bank": mod.bank,
+                "/revives": mod.revive,
+                "revives": mod.revive,
+                "/bounty": mod.bounty,
+                "bounty": mod.bounty
             })
         else:
             # You can add other commands similarly
