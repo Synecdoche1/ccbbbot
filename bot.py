@@ -2,31 +2,15 @@
 import os
 import sys
 import traceback
-import threading
-from flask import Flask
 import discord
 import asyncio
+from flask import Flask
+from threading import Thread
 
 print("🚀 Starting bot...")
 
 # -------------------------
-# FLASK SERVER TO KEEP RENDER HAPPY
-# -------------------------
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Bot is running!"
-
-def run_flask():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-
-threading.Thread(target=run_flask, daemon=True).start()
-print("✅ Flask server started (dummy server for Render free tier)")
-
-# -------------------------
-# LOAD CONFIG FROM ENV
+# CONFIG FROM ENV
 # -------------------------
 TOKEN = os.getenv("DISCORD_TOKEN")
 FACTION_ID = os.getenv("FACTION_ID")
@@ -43,9 +27,11 @@ print("✅ Config loaded from environment variables")
 # -------------------------
 # IMPORT MODULES
 # -------------------------
-modules_to_import = ["revive","attack","bounty","inactivity","war","stock","chain","banking"]
-imported_modules = {}
+modules_to_import = [
+    "revive", "attack", "bounty", "inactivity", "war", "stock", "chain", "banking"
+]
 
+imported_modules = {}
 for mod_name in modules_to_import:
     try:
         imported_modules[mod_name] = __import__(f"modules.{mod_name}", fromlist=[mod_name])
@@ -56,7 +42,7 @@ for mod_name in modules_to_import:
         imported_modules[mod_name] = None
 
 # -------------------------
-# CREATE DISCORD CLIENT
+# DISCORD CLIENT SETUP
 # -------------------------
 intents = discord.Intents.default()
 intents.message_content = True
@@ -65,24 +51,23 @@ client = discord.Client(intents=intents)
 print("✅ Discord client created successfully")
 
 # -------------------------
-# COMMAND HANDLER
+# COMMAND REGISTRY
 # -------------------------
 COMMANDS = {}
 
-# Map commands to module functions
-for name, mod in imported_modules.items():
+for name in ["revive","bounty","inactivity","war","chain","banking"]:
+    mod = imported_modules.get(name)
     if mod:
-        if name == "banking":
-            COMMANDS.update({
-                "bank": mod.bank,
-                "/bank": mod.bank
-            })
-        elif name == "revive":
+        if name == "revive":
             COMMANDS.update({
                 "revives": mod.revives,
                 "/revives": mod.revives
             })
-        # Add other commands here if needed
+        elif name == "banking":
+            COMMANDS.update({
+                "bank": mod.bank,
+                "/bank": mod.bank
+            })
 
 print(f"✅ Commands registered: {list(COMMANDS.keys())}")
 
@@ -100,39 +85,63 @@ async def on_ready():
     banking = imported_modules.get("banking")
     if banking and hasattr(banking, "setup_banking_events"):
         banking.setup_banking_events(client)
-        print("✅ Banking events set up")
+        print("✅ Banking events initialized")
 
 # -------------------------
 # ON_MESSAGE EVENT
 # -------------------------
 @client.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author.bot:
         return
 
-    # Only process if bot is mentioned or DM
     should_process = client.user in message.mentions or isinstance(message.channel, discord.DMChannel)
     if not should_process:
         return
 
     content_lower = message.content.lower().strip()
-    # Remove mention text
+    # Remove mention
     mention_str = f"<@{client.user.id}>"
-    mention_str_nick = f"<@!{client.user.id}>"
-    content_lower = content_lower.replace(mention_str, "").replace(mention_str_nick, "").strip()
+    mention_nick = f"<@!{client.user.id}>"
+    content_lower = content_lower.replace(mention_str, "").replace(mention_nick, "").strip()
 
-    # DEBUG: show received command
     print(f"📩 Received command: {content_lower} from {message.author}")
 
-    for cmd_name, func in COMMANDS.items():
-        if content_lower.startswith(cmd_name):
-            print(f"⚡ Running command: {cmd_name}")
-            try:
-                await func(message.channel) if "revives" in cmd_name else await func(client, message)
-            except Exception as e:
-                print(f"❌ Error running command {cmd_name}: {e}")
-                traceback.print_exc()
-            break
+    # Process revives command
+    if any(cmd in content_lower for cmd in ["revives", "/revives"]):
+        revive_mod = imported_modules.get("revive")
+        if revive_mod and hasattr(revive_mod, "revives"):
+            print("⚡ Executing revives command")
+            await revive_mod.revives(message.channel)
+        else:
+            await message.channel.send("❌ Revives module not available")
+        return
+
+    # Process banking command
+    if "bank" in content_lower:
+        banking_mod = imported_modules.get("banking")
+        if banking_mod:
+            if content_lower.strip() == "bank":
+                await banking_mod.bank(message.channel)
+            else:
+                await banking_mod.handle_bank_command(message)
+        return
+
+# -------------------------
+# FLASK KEEP-ALIVE FOR RENDER FREE TIER
+# -------------------------
+app = Flask("keep_alive")
+
+@app.route("/")
+def home():
+    return "Discord bot is running!", 200
+
+def run_server():
+    port = int(os.getenv("PORT", 5000))
+    print(f"🌐 Flask server starting on port {port} for Render keep-alive")
+    app.run(host="0.0.0.0", port=port)
+
+Thread(target=run_server, daemon=True).start()
 
 # -------------------------
 # START BOT
