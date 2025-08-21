@@ -2,10 +2,28 @@
 import os
 import sys
 import traceback
+import threading
+from flask import Flask
 import discord
-from datetime import datetime
+import asyncio
 
-print("🚀 Starting bot with debugging...")
+print("🚀 Starting bot...")
+
+# -------------------------
+# FLASK SERVER TO KEEP RENDER HAPPY
+# -------------------------
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+threading.Thread(target=run_flask, daemon=True).start()
+print("✅ Flask server started (dummy server for Render free tier)")
 
 # -------------------------
 # LOAD CONFIG FROM ENV
@@ -16,26 +34,24 @@ ATTACK_CHANNEL_ID = os.getenv("ATTACK_CHANNEL_ID")
 WAR_CHANNEL_ID = os.getenv("WAR_CHANNEL_ID")
 LEADER_CHANNEL_ID = os.getenv("LEADER_CHANNEL_ID")
 
-print(f"🔹 Loaded env vars: TOKEN set? {'Yes' if TOKEN else 'No'}, FACTION_ID: {FACTION_ID}")
-
 if not TOKEN:
     print("❌ DISCORD_TOKEN environment variable not set!")
     sys.exit(1)
 
+print("✅ Config loaded from environment variables")
+
 # -------------------------
 # IMPORT MODULES
 # -------------------------
-modules_to_import = [
-    "revive", "attack", "bounty", "inactivity", "war", "stock", "chain", "banking"
-]
-
+modules_to_import = ["revive","attack","bounty","inactivity","war","stock","chain","banking"]
 imported_modules = {}
+
 for mod_name in modules_to_import:
     try:
         imported_modules[mod_name] = __import__(f"modules.{mod_name}", fromlist=[mod_name])
-        print(f"✅ Module '{mod_name}' imported successfully")
+        print(f"✅ {mod_name.capitalize()} module imported successfully")
     except Exception as e:
-        print(f"❌ Failed to import module '{mod_name}': {e}")
+        print(f"❌ Failed to import {mod_name} module: {e}")
         traceback.print_exc()
         imported_modules[mod_name] = None
 
@@ -46,54 +62,29 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True
 client = discord.Client(intents=intents)
-print("✅ Discord client created successfully with intents")
+print("✅ Discord client created successfully")
 
 # -------------------------
-# REGISTER COMMANDS
+# COMMAND HANDLER
 # -------------------------
 COMMANDS = {}
 
+# Map commands to module functions
 for name, mod in imported_modules.items():
-    if not mod:
-        print(f"⚠️ Module {name} is None, skipping command registration")
-        continue
-
-    try:
-        if hasattr(mod, "bank"):
+    if mod:
+        if name == "banking":
             COMMANDS.update({
-                "bank": getattr(mod, "bank"),
-                "/bank": getattr(mod, "bank")
+                "bank": mod.bank,
+                "/bank": mod.bank
             })
-            print(f"🔹 Registered banking commands for module '{name}'")
-        if hasattr(mod, "revives"):
+        elif name == "revive":
             COMMANDS.update({
-                "revives": getattr(mod, "revives"),
-                "/revives": getattr(mod, "revives")
+                "revives": mod.revives,
+                "/revives": mod.revives
             })
-            print(f"🔹 Registered revives commands for module '{name}'")
-        if hasattr(mod, "bounty"):
-            COMMANDS.update({
-                "bounty": getattr(mod, "bounty"),
-                "/bounty": getattr(mod, "bounty")
-            })
-            print(f"🔹 Registered bounty commands for module '{name}'")
-    except Exception as e:
-        print(f"❌ Error registering commands for module '{name}': {e}")
-        traceback.print_exc()
+        # Add other commands here if needed
 
-print(f"✅ Total commands registered: {list(COMMANDS.keys())}")
-
-# -------------------------
-# SETUP MODULE EVENTS (e.g., banking)
-# -------------------------
-banking_mod = imported_modules.get("banking")
-if banking_mod and hasattr(banking_mod, "setup_banking_events"):
-    print("🔹 Setting up banking events")
-    try:
-        banking_mod.setup_banking_events(client)
-    except Exception as e:
-        print(f"❌ Failed to setup banking events: {e}")
-        traceback.print_exc()
+print(f"✅ Commands registered: {list(COMMANDS.keys())}")
 
 # -------------------------
 # ON_READY EVENT
@@ -105,54 +96,48 @@ async def on_ready():
     for guild in client.guilds:
         print(f"   - {guild.name} (ID: {guild.id})")
 
+    # Setup banking events if available
+    banking = imported_modules.get("banking")
+    if banking and hasattr(banking, "setup_banking_events"):
+        banking.setup_banking_events(client)
+        print("✅ Banking events set up")
+
 # -------------------------
 # ON_MESSAGE EVENT
 # -------------------------
 @client.event
 async def on_message(message):
-    try:
-        if message.author == client.user:
-            return
+    if message.author == client.user:
+        return
 
-        # Only respond to mentions or DMs
-        should_process = client.user in message.mentions or isinstance(message.channel, discord.DMChannel)
-        if not should_process:
-            return
+    # Only process if bot is mentioned or DM
+    should_process = client.user in message.mentions or isinstance(message.channel, discord.DMChannel)
+    if not should_process:
+        return
 
-        content_lower = message.content.lower().strip()
-        # Remove bot mention
-        if client.user in message.mentions:
-            mention_str = f"<@{client.user.id}>"
-            mention_str_nick = f"<@!{client.user.id}>"
-            content_lower = content_lower.replace(mention_str, "").replace(mention_str_nick, "").strip()
+    content_lower = message.content.lower().strip()
+    # Remove mention text
+    mention_str = f"<@{client.user.id}>"
+    mention_str_nick = f"<@!{client.user.id}>"
+    content_lower = content_lower.replace(mention_str, "").replace(mention_str_nick, "").strip()
 
-        print(f"📩 Received message: '{message.content}' from {message.author} in {message.channel}")
+    # DEBUG: show received command
+    print(f"📩 Received command: {content_lower} from {message.author}")
 
-        # Dispatch commands
-        handled = False
-        for cmd_name, cmd_func in COMMANDS.items():
-            if content_lower.startswith(cmd_name):
-                print(f"⚡ Triggered command '{cmd_name}' from message")
-                # Banking needs full message
-                if cmd_name in ["bank", "/bank"] and "banking" in imported_modules:
-                    await imported_modules["banking"].handle_bank_command(message)
-                else:
-                    await cmd_func(message.channel)
-                handled = True
-                break
-
-        if not handled:
-            print(f"ℹ️ No command matched for message: '{message.content}'")
-
-    except Exception as e:
-        print(f"❌ Error processing message: {e}")
-        traceback.print_exc()
+    for cmd_name, func in COMMANDS.items():
+        if content_lower.startswith(cmd_name):
+            print(f"⚡ Running command: {cmd_name}")
+            try:
+                await func(message.channel) if "revives" in cmd_name else await func(client, message)
+            except Exception as e:
+                print(f"❌ Error running command {cmd_name}: {e}")
+                traceback.print_exc()
+            break
 
 # -------------------------
 # START BOT
 # -------------------------
 try:
-    print("🚀 Running bot...")
     client.run(TOKEN)
 except discord.LoginFailure:
     print("❌ Invalid bot token!")
