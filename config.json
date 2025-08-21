@@ -1,0 +1,7 @@
+{
+    "prefixes": ["!", "/", "tc "],
+    "admin_users": [123456789],
+    "max_response_time": 30,
+    "cache_ttl": 300,
+    "debug_mode": false
+}

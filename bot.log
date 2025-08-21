@@ -1,0 +1,99 @@
+2025-08-18 16:27:40,019 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-08-18 16:30:16,968 - __main__ - INFO - [OK] discord.py imported successfully
+2025-08-18 16:30:16,968 - __main__ - INFO - [OK] aiohttp imported successfully
+2025-08-18 16:30:16,968 - __main__ - INFO - [OK] aiofiles imported successfully
+2025-08-18 16:30:16,991 - __main__ - INFO - [OK] Config loaded - ATTACK: 1405901439045210112, WAR: 1406979694800277604
+2025-08-18 16:30:16,992 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-08-18 16:30:17,367 - __main__ - INFO - [OK] Revive module loaded successfully
+2025-08-18 16:30:17,368 - __main__ - INFO - [OK] Attack module loaded successfully
+2025-08-18 16:30:17,372 - __main__ - INFO - [OK] Bounty module loaded successfully
+2025-08-18 16:30:17,373 - __main__ - INFO - [OK] Inactivity module loaded successfully
+2025-08-18 16:30:17,376 - __main__ - INFO - [OK] War module loaded successfully
+2025-08-18 16:30:17,377 - __main__ - INFO - [OK] Stock module loaded successfully
+2025-08-18 16:30:17,378 - __main__ - INFO - [OK] Chain module loaded successfully
+2025-08-18 16:30:17,379 - __main__ - INFO - [OK] Bot token loaded successfully
+2025-08-18 16:30:17,379 - __main__ - INFO - [START] Starting Enhanced Discord Bot...
+2025-08-18 16:30:17,380 - discord.client - INFO - logging in using static token
+2025-08-18 16:30:17,880 - __main__ - INFO - 🌐 HTTP session created
+2025-08-18 16:30:17,880 - __main__ - INFO - [OK] Background tasks started
+2025-08-18 16:30:17,881 - __main__ - INFO - 🧹 Cache cleanup completed
+2025-08-18 16:30:17,881 - __main__ - INFO - 📊 Stats - Uptime: 1s, Commands: 0, Success Rate: 100.0%
+2025-08-18 16:30:18,353 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: c0b2f253be6a683876d2659f34918dd1).
+2025-08-18 16:30:20,370 - __main__ - INFO - [OK] Logged in as CCBB Bot#7958 (ID: 1405919237247336468)
+2025-08-18 16:30:20,371 - __main__ - INFO - [OK] Bot is in 1 guilds
+2025-08-18 16:30:20,371 - __main__ - INFO -    - Chatty Chatty Bang Bang (ID: 1393225458983764089, Members: 26)
+2025-08-18 16:30:20,371 - __main__ - INFO - [OK] ATTACK channel found: #attacks
+2025-08-18 16:30:20,371 - __main__ - INFO - [OK] WAR channel found: #war
+2025-08-18 16:30:20,372 - __main__ - INFO - [OK] Started background tasks: attack, war, stock, chain
+2025-08-18 16:30:20,496 - modules.war - INFO - Loaded state: War ID 29521
+2025-08-18 16:30:21,165 - modules.war - INFO - War monitoring started
+2025-08-18 16:30:21,464 - modules.stock - INFO - ✅ Stock check posted successfully
+2025-08-18 16:33:17,101 - discord.client - ERROR - Ignoring exception in on_message
+Traceback (most recent call last):
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\client.py", line 441, in _run_event
+    await coro(*args, **kwargs)
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1395, in on_message
+    await self.process_commands(message)
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1390, in process_commands
+    ctx = await self.get_context(message)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1289, in get_context
+    prefix = await self.get_prefix(origin)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: EnhancedBot.get_prefix() missing 1 required positional argument: 'message'
+2025-08-18 16:33:35,182 - discord.client - ERROR - Ignoring exception in on_message
+Traceback (most recent call last):
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\client.py", line 441, in _run_event
+    await coro(*args, **kwargs)
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1395, in on_message
+    await self.process_commands(message)
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1390, in process_commands
+    ctx = await self.get_context(message)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1289, in get_context
+    prefix = await self.get_prefix(origin)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: EnhancedBot.get_prefix() missing 1 required positional argument: 'message'
+2025-08-18 16:34:18,661 - __main__ - INFO - [OK] discord.py imported successfully
+2025-08-18 16:34:18,661 - __main__ - INFO - [OK] aiohttp imported successfully
+2025-08-18 16:34:18,661 - __main__ - INFO - [OK] aiofiles imported successfully
+2025-08-18 16:34:18,682 - __main__ - INFO - [OK] Config loaded - ATTACK: 1405901439045210112, WAR: 1406979694800277604
+2025-08-18 16:34:18,683 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-08-18 16:34:18,684 - __main__ - INFO - ✅ Config loaded from config.json
+2025-08-18 16:34:19,062 - __main__ - INFO - [OK] Revive module loaded successfully
+2025-08-18 16:34:19,063 - __main__ - INFO - [OK] Attack module loaded successfully
+2025-08-18 16:34:19,066 - __main__ - INFO - [OK] Bounty module loaded successfully
+2025-08-18 16:34:19,067 - __main__ - INFO - [OK] Inactivity module loaded successfully
+2025-08-18 16:34:19,070 - __main__ - INFO - [OK] War module loaded successfully
+2025-08-18 16:34:19,071 - __main__ - INFO - [OK] Stock module loaded successfully
+2025-08-18 16:34:19,072 - __main__ - INFO - [OK] Chain module loaded successfully
+2025-08-18 16:34:19,072 - __main__ - INFO - [OK] Bot token loaded successfully
+2025-08-18 16:34:19,073 - __main__ - INFO - [START] Starting Enhanced Discord Bot...
+2025-08-18 16:34:19,074 - discord.client - INFO - logging in using static token
+2025-08-18 16:34:19,654 - __main__ - INFO - 🌐 HTTP session created
+2025-08-18 16:34:19,654 - __main__ - INFO - [OK] Background tasks started
+2025-08-18 16:34:19,655 - __main__ - INFO - 🧹 Cache cleanup completed
+2025-08-18 16:34:19,655 - __main__ - INFO - 📊 Stats - Uptime: 1s, Commands: 0, Success Rate: 100.0%
+2025-08-18 16:34:20,052 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: d1aeb980c995b8a01a452a0ddaa320ca).
+2025-08-18 16:34:22,077 - __main__ - INFO - [OK] Logged in as CCBB Bot#7958 (ID: 1405919237247336468)
+2025-08-18 16:34:22,078 - __main__ - INFO - [OK] Bot is in 1 guilds
+2025-08-18 16:34:22,078 - __main__ - INFO -    - Chatty Chatty Bang Bang (ID: 1393225458983764089, Members: 26)
+2025-08-18 16:34:22,078 - __main__ - INFO - [OK] ATTACK channel found: #attacks
+2025-08-18 16:34:22,078 - __main__ - INFO - [OK] WAR channel found: #war
+2025-08-18 16:34:22,079 - __main__ - INFO - [OK] Started background tasks: attack, war, stock, chain
+2025-08-18 16:34:22,210 - modules.war - INFO - Loaded state: War ID 29521
+2025-08-18 16:34:22,468 - modules.war - INFO - War monitoring started
+2025-08-18 16:34:22,653 - modules.stock - INFO - ✅ Stock check posted successfully
+2025-08-18 16:34:27,170 - discord.client - ERROR - Ignoring exception in on_message
+Traceback (most recent call last):
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\client.py", line 441, in _run_event
+    await coro(*args, **kwargs)
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1395, in on_message
+    await self.process_commands(message)
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1390, in process_commands
+    ctx = await self.get_context(message)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Garyh\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\discord\ext\commands\bot.py", line 1289, in get_context
+    prefix = await self.get_prefix(origin)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: EnhancedBot.get_prefix() missing 1 required positional argument: 'message'
