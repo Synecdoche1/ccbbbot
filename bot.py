@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-import sys
 import os
+import sys
 import traceback
-import asyncio
-import re
 import discord
 from datetime import datetime
 
@@ -51,27 +49,42 @@ client = discord.Client(intents=intents)
 print("✅ Discord client created successfully")
 
 # -------------------------
-# COMMAND REGISTRY
+# REGISTER COMMANDS
 # -------------------------
 COMMANDS = {}
 
-for name in ["revive","bounty","inactivity","war","chain","banking"]:
-    mod = imported_modules.get(name)
-    if mod:
-        if name == "banking":
-            COMMANDS.update({
-                "bank": mod.bank,
-                "/bank": mod.bank,
-                "/revives": mod.revive,
-                "revives": mod.revive,
-                "/bounty": mod.bounty,
-                "bounty": mod.bounty
-            })
-        else:
-            # You can add other commands similarly
-            pass
+for name, mod in imported_modules.items():
+    if not mod:
+        continue
+
+    # Banking commands
+    if hasattr(mod, "bank"):
+        COMMANDS.update({
+            "bank": getattr(mod, "bank"),
+            "/bank": getattr(mod, "bank")
+        })
+    # Revives command
+    if hasattr(mod, "revives"):
+        COMMANDS.update({
+            "revives": getattr(mod, "revives"),
+            "/revives": getattr(mod, "revives")
+        })
+    # Bounty command
+    if hasattr(mod, "bounty"):
+        COMMANDS.update({
+            "bounty": getattr(mod, "bounty"),
+            "/bounty": getattr(mod, "bounty")
+        })
+    # Add other module commands here similarly
 
 print(f"✅ Commands registered: {list(COMMANDS.keys())}")
+
+# -------------------------
+# SETUP EVENTS FROM MODULES (banking, etc.)
+# -------------------------
+banking_mod = imported_modules.get("banking")
+if banking_mod and hasattr(banking_mod, "setup_banking_events"):
+    banking_mod.setup_banking_events(client)
 
 # -------------------------
 # ON_READY EVENT
@@ -83,11 +96,6 @@ async def on_ready():
     for guild in client.guilds:
         print(f"   - {guild.name} (ID: {guild.id})")
 
-    # Setup banking events if available
-    banking = imported_modules.get("banking")
-    if banking and hasattr(banking, "setup_banking_events"):
-        banking.setup_banking_events(client)
-
 # -------------------------
 # ON_MESSAGE EVENT
 # -------------------------
@@ -96,24 +104,27 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    # Only respond to mentions or DMs
     should_process = client.user in message.mentions or isinstance(message.channel, discord.DMChannel)
     if not should_process:
         return
 
     content_lower = message.content.lower().strip()
-    # Remove mention
+    # Remove bot mention
     if client.user in message.mentions:
         mention_str = f"<@{client.user.id}>"
         mention_str_nick = f"<@!{client.user.id}>"
         content_lower = content_lower.replace(mention_str, "").replace(mention_str_nick, "").strip()
 
-    banking = imported_modules.get("banking")
-    if banking and ('bank' in content_lower):
-        if content_lower.strip() == 'bank':
-            await banking.bank(message.channel)
-        else:
-            await banking.handle_bank_command(message)
-        return
+    # Find command in COMMANDS
+    for cmd_name, cmd_func in COMMANDS.items():
+        if content_lower.startswith(cmd_name):
+            # Banking is special because it needs the message object
+            if cmd_name in ["bank", "/bank"] and "banking" in imported_modules:
+                await imported_modules["banking"].handle_bank_command(message)
+            else:
+                await cmd_func(message.channel)
+            return
 
 # -------------------------
 # START BOT
