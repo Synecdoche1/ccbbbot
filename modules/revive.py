@@ -1,7 +1,7 @@
+import os
+import json
 import requests
 import discord
-import json
-import os
 import traceback
 
 # -------------------------
@@ -38,10 +38,8 @@ def save_cache(data, file):
 # REVIVES COMMAND
 # -------------------------
 async def revives(channel):
-    """Send revivable faction members as an embed"""
-    print(f"🔍 Starting revives command for faction {FACTION_ID}")
+    print(f"🚀 Starting revives command for faction {FACTION_ID}")
 
-    # Check for valid API key
     if TORN_API_KEY == "YOUR_API_KEY_HERE" or FACTION_ID == "YOUR_FACTION_ID_HERE":
         error_msg = "❌ Bot configuration error: Torn API key or Faction ID not set."
         print(error_msg)
@@ -49,28 +47,39 @@ async def revives(channel):
         return
 
     try:
-        # Initial status message
         status_msg = await channel.send("🔍 Fetching faction members...")
-
         api_url = f"https://api.torn.com/v2/faction/members?selections=profile&key={TORN_API_KEY}"
+        print(f"📡 Requesting API URL: {api_url}")
         r = requests.get(api_url, timeout=20)
         r.raise_for_status()
         data = r.json()
+        print(f"📋 API response keys: {list(data.keys())}")
 
         if "error" in data:
             await channel.send(f"❌ Torn API error: {data['error']}")
             return
 
         members_data = data.get("members", {})
+        print(f"🔹 Members data type: {type(members_data)}")
+
         if not members_data:
             await channel.send("❌ No members data found.")
             return
 
+        # -------------------------
         # Process members
+        # -------------------------
         revivable_members = {"Everyone": [], "Friends & faction": []}
         total_revives = 0
 
-        for member_id, member_info in members_data.items():
+        if isinstance(members_data, dict):
+            members_iter = members_data.items()
+        elif isinstance(members_data, list):
+            members_iter = enumerate(members_data)
+        else:
+            members_iter = []
+
+        for member_id, member_info in members_iter:
             if not member_info.get("is_revivable"):
                 continue
 
@@ -82,9 +91,13 @@ async def revives(channel):
             name = member_info.get("name", f"ID:{member_id}")
             profile_link = f"https://www.torn.com/profiles.php?XID={member_id}"
             revivable_members[setting].append(f"[{name}]({profile_link})")
+            print(f"✅ Found revivable member: {name} (setting: {setting})")
 
         await status_msg.delete()
 
+        # -------------------------
+        # Build embed
+        # -------------------------
         if total_revives == 0:
             embed = discord.Embed(
                 title="⚡ Revivable Faction Members",
@@ -95,7 +108,6 @@ async def revives(channel):
             print("✅ No revivable members - sent message")
             return
 
-        # Build embed
         embed = discord.Embed(
             title="⚡ Revivable Faction Members",
             description=f"⚠️ **{total_revives} members have revives enabled!** ⚠️\n\n*📱 Please turn your revives OFF!!*",
@@ -122,4 +134,4 @@ async def revives(channel):
         try:
             await channel.send(error_msg)
         except:
-            pass
+            print("❌ Could not send error message to channel")
