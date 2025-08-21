@@ -7,8 +7,8 @@ import traceback
 # -------------------------
 # CONFIG FROM ENVIRONMENT
 # -------------------------
-TORN_API_KEY = os.getenv("TORN_API_KEY", "YOUR_API_KEY_HERE")
-FACTION_ID = os.getenv("FACTION_ID", "YOUR_FACTION_ID_HERE")
+TORN_API_KEY = os.getenv("TORN_API_KEY")
+FACTION_ID = os.getenv("FACTION_ID")
 
 if TORN_API_KEY == "YOUR_API_KEY_HERE" or FACTION_ID == "YOUR_FACTION_ID_HERE":
     print("❌ Torn API key or Faction ID not set. Revives command will not work until configured.
