@@ -5,12 +5,15 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 import discord
-from config import TORN_API_KEY, FACTION_ID, STOCK_CHANNEL_ID  # your Discord channel ID
+from config import TORN_API_KEY, STOCK_CHANNEL_ID  # make sure this is set
 
+# Categories to check
 CHECK_CATEGORIES = ["medical", "boosters", "drugs"]
 MIN_PER_ITEM = int(os.getenv("MIN_PER_ITEM", "50"))
+FILTERED_DRUGS = ["Xanax"]  # Only show these drugs
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def fetch_inventory():
     """Fetch faction inventory from Torn API"""
@@ -32,15 +35,23 @@ def fetch_inventory():
 
 
 def find_low_items(data, min_qty=MIN_PER_ITEM):
-    """Return items below threshold"""
+    """Return items below threshold, filtered as needed"""
     low = {}
     for cat in CHECK_CATEGORIES:
         items_data = data.get(cat, [])
         items = list(items_data.values()) if isinstance(items_data, dict) else items_data
-        low[cat] = [
-            (item.get("name", "Unknown"), int(item.get("quantity", 0)))
-            for item in items if int(item.get("quantity", 0)) < min_qty
-        ]
+
+        filtered_items = []
+        for item in items:
+            name = item.get("name", "Unknown")
+            qty = int(item.get("quantity", 0))
+            if qty < min_qty:
+                # If category is drugs, only include filtered drugs
+                if cat == "drugs" and name not in FILTERED_DRUGS:
+                    continue
+                filtered_items.append((name, qty))
+
+        low[cat] = filtered_items
     return low
 
 
